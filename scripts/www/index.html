@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e7490">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="出行手册">
+<title>出行手册</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#eef1f5; --card:#fff; --fg:#111827; --muted:#6b7280; --line:#e3e7ee;
+    --accent:#0e7490; --accent-fg:#fff; --soft:#e6f2f6;
+    --ok:#15803d; --danger:#dc2626; --radius:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0b1220;--card:#161f30;--fg:#e6e9ef;--muted:#93a0b5;--line:#27334a;
+          --accent:#2aa5c8;--accent-fg:#04161c;--soft:#12303c;--ok:#4ade80;--danger:#f87171}
+  }
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--fg);min-height:100vh;
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-text-size-adjust:100%;overflow-x:hidden;
+  }
+  button,input,textarea,select{font:inherit;color:inherit}
+  button{cursor:pointer;border:0;background:none;padding:0}
+  a{color:inherit;text-decoration:none}
+  h1,h2{margin:0;font-size:1rem;font-weight:600}
+
+  /* ---------- 顶栏 ---------- */
+  #topbar{
+    position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
+    padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 10px;
+    background:var(--accent);color:var(--accent-fg);
+    box-shadow:0 1px 6px rgba(0,0,0,.12);
+  }
+  #topTitle{flex:1;text-align:center;font-size:1.05rem;font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tb-btn{
+    min-width:44px;min-height:40px;display:flex;align-items:center;justify-content:center;
+    font-size:1.35rem;line-height:1;color:inherit;border-radius:10px;
+  }
+  .tb-btn:active{background:rgba(255,255,255,.18)}
+  .tb-btn[hidden]{display:none}
+
+  /* ---------- 布局 ---------- */
+  main{padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 28px);max-width:640px;margin:0 auto}
+  .muted{color:var(--muted)}
+  .small{font-size:.82rem}
+  .pad{padding:10px 2px}
+
+  /* ---------- 行程卡片 ---------- */
+  .card{
+    display:block;width:100%;text-align:left;background:var(--card);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(16,24,40,.07);
+    border:1px solid var(--line);
+  }
+  .card:active{transform:scale(.99)}
+  .card-t{font-size:1.06rem;font-weight:600;margin-bottom:3px;word-break:break-word}
+  .bar{height:5px;border-radius:99px;background:var(--line);margin-top:10px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .25s}
+
+  /* ---------- 按钮 ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    min-height:46px;padding:0 16px;border-radius:12px;background:var(--card);
+    border:1px solid var(--line);font-weight:500;font-size:.95rem;
+  }
+  .btn:active{opacity:.7}
+  .btn.block{width:100%;margin-top:4px}
+  .btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent;font-weight:600}
+  .btn.ghost{background:transparent}
+  .btn.danger{color:var(--danger);border-color:var(--danger)}
+  .btn.tiny{min-height:40px;padding:0 12px;font-size:.88rem}
+  /* ---------- 天 ---------- */
+  .day{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    margin-bottom:12px;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.06)}
+  .day-h{display:flex;align-items:center;gap:8px;padding:10px 8px 10px 14px;
+    background:var(--soft);border-bottom:1px solid var(--line)}
+  .day-label{font-weight:600}
+  .day-body{padding:4px 0}
+  .day-body .btn.block{margin:6px 10px 10px;width:calc(100% - 20px)}
+  .day-body > .swipe{border-bottom:1px solid var(--line)}
+
+  /* ---------- 详情页头部 + 天数筛选 ---------- */
+  .trip-head{padding:2px 2px 14px}
+  .th-stats{font-size:.78rem;color:var(--muted);letter-spacing:.3px}
+  .th-title{font-size:1.3rem;font-weight:700;margin:6px 0 14px;line-height:1.3;word-break:break-word}
+  .day-tabs{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .tab-label{font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:1px}
+  .day-tabs .sep{width:1px;height:16px;background:var(--line);margin:0 3px}
+  .tab{
+    min-width:34px;height:34px;padding:0 11px;border-radius:99px;
+    border:1px solid var(--line);background:var(--card);
+    font-size:.85rem;font-weight:600;color:var(--muted);
+    display:inline-flex;align-items:center;justify-content:center;
+  }
+  .tab:active{opacity:.65}
+  .tab.on{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+  .tab.tab-total{font-size:.72rem;letter-spacing:1px;padding:0 13px}
+  .th-note{margin-top:12px;font-size:.8rem;color:var(--muted);
+    background:var(--soft);padding:9px 12px;border-radius:10px}
+
+  /* 列表页的行程卡片也支持左滑（照搬景点行那一套）。
+     注意：.swipe 有 overflow:hidden，卡片自己的阴影/圆角会被裁掉，
+     所以阴影和圆角挪到外层 .swipe 上。 */
+  .swipe.trip-swipe{
+    border-radius:var(--radius);margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(16,24,40,.07);
+  }
+  .swipe.trip-swipe .card{margin-bottom:0;box-shadow:none}
+  .swipe.trip-swipe .swipe-actions{border-radius:0 var(--radius) var(--radius) 0;overflow:hidden}
+  .swipe.trip-swipe .swipe-btn{width:78px}
+  /* 拖动时不要触发卡片按下的缩放，否则跟着手指一起抖 */
+  .swipe.dragging .card{transform:none}
+
+  /* ---------- 左滑操作（替代铅笔按钮） ---------- */
+  .swipe{position:relative;overflow:hidden;touch-action:pan-y}
+  /* 收起时按钮完全不绘制（而不是仅被内容层盖住）。
+     否则在真实浏览器里，内容层做合成/小数像素对齐时会漏出一丝蓝红色边。 */
+  .swipe-actions{position:absolute;top:0;right:0;height:100%;display:flex;z-index:0;
+    opacity:0;pointer-events:none;transition:opacity .18s}
+  .swipe.open .swipe-actions,
+  .swipe.dragging .swipe-actions{opacity:1;pointer-events:auto}
+  .swipe.dragging .swipe-actions{transition:none}
+  .swipe-btn{
+    width:76px;height:100%;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:.9rem;font-weight:600;letter-spacing:.5px;
+  }
+  .swipe-btn.edit{background:var(--accent)}
+  .swipe-btn.del{background:var(--danger)}
+  .swipe-inner{
+    position:relative;z-index:1;transition:transform .2s cubic-bezier(.2,.8,.3,1);
+    will-change:transform;
+  }
+  .swipe.dragging .swipe-inner{transition:none;user-select:none;-webkit-user-select:none}
+  .swipe-inner .item-name{-webkit-user-drag:none;user-drag:none}
+
+  /* ---------- 景点行 ---------- */
+  .item{display:flex;align-items:flex-start;gap:4px;padding:10px 6px 10px 8px;
+    background:var(--card)}
+  .check{
+    flex:0 0 auto;width:30px;height:30px;margin-top:2px;border-radius:50%;
+    border:2px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font-size:1rem;color:#fff;line-height:1;
+  }
+  .item.done .check{background:var(--ok);border-color:var(--ok)}
+  .item-main{flex:1;min-width:0;padding:2px 0}
+  .item-name{display:inline;font-size:1.02rem;font-weight:600;word-break:break-word;
+    border-bottom:1px dashed transparent;cursor:pointer}
+  .item-name:active{color:var(--accent)}
+  .item.done .item-name{text-decoration:line-through;color:var(--muted)}
+  .item-note{margin-top:2px;word-break:break-word}
+
+  /* ---------- 底部弹层 ---------- */
+  #sheetWrap{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end}
+  #sheetWrap[hidden]{display:none}
+  #sheetMask{position:absolute;inset:0;background:rgba(0,0,0,.42);opacity:0;transition:opacity .18s}
+  #sheetWrap.open #sheetMask{opacity:1}
+  #sheet{
+    position:relative;width:100%;max-width:640px;margin:0 auto;
+    background:var(--card);border-radius:18px 18px 0 0;
+    max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 18px);
+    transform:translateY(100%);transition:transform .2s ease-out;
+  }
+  #sheetWrap.open #sheet{transform:translateY(0)}
+  #sheet::before{content:"";display:block;width:38px;height:4px;border-radius:99px;
+    background:var(--line);margin:-4px auto 12px}
+
+  /* ---------- 表单 ---------- */
+  .form h2{font-size:1.05rem;margin-bottom:12px}
+  .form label{display:block;margin-bottom:12px;font-size:.88rem;color:var(--muted)}
+  .form input,.form textarea{
+    display:block;width:100%;margin-top:5px;padding:11px 12px;
+    background:var(--bg);border:1px solid var(--line);border-radius:11px;
+    color:var(--fg);font-size:1rem;
+  }
+  .form input:focus,.form textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+  .form textarea{resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem}
+  .form .req{color:var(--danger);font-size:.78rem}
+  .hint{font-size:.78rem;color:var(--muted);background:var(--soft);padding:9px 11px;
+    border-radius:10px;margin:-4px 0 12px;line-height:1.45}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .actions{display:flex;gap:10px;margin-top:6px}
+  .actions .btn{flex:1}
+  .actions2{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .actions2 .btn{flex:1}
+  /* ---------- 粘贴行程 ---------- */
+  .plan-entry{margin-bottom:12px}
+  .pv{max-height:36vh;overflow:auto;border:1px solid var(--line);border-radius:11px;
+    background:var(--bg);padding:10px 12px;margin-bottom:12px}
+  .pv-day{margin-bottom:10px}
+  .pv-day:last-child{margin-bottom:0}
+  .pv-h{font-size:.82rem;font-weight:700;color:var(--fg);margin-bottom:5px}
+  .pv-i{font-size:.86rem;color:var(--fg);padding:3px 0 3px 12px;position:relative;line-height:1.4}
+  .pv-i::before{content:"\00b7";position:absolute;left:2px;color:var(--muted)}
+  #sheet [hidden]{display:none}
+
+  .empty{text-align:center;color:var(--fg);padding:52px 16px;line-height:2}
+
+  #toast{
+    position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);
+    transform:translateX(-50%);z-index:99;background:rgba(17,24,39,.92);color:#fff;
+    padding:10px 18px;border-radius:99px;font-size:.88rem;max-width:80vw;text-align:center;
+  }
+  #toast.ok{background:#15803d;padding:11px 20px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+  #toast.ok .toast-sub{display:block;margin-top:3px;font-size:.72rem;font-weight:400;opacity:.92}
+  @media (prefers-color-scheme:dark){
+    #toast.ok{background:#16a34a;color:#052e16}
+  }
+  #toast[hidden]{display:none}
+</style>
+</head>
+<body>
+
+<header id="topbar">
+  <button class="tb-btn" id="backBtn" hidden aria-label="返回">‹</button>
+  <h1 id="topTitle">出行手册</h1>
+  <button class="tb-btn" id="menuBtn" aria-label="备份与恢复">⋯</button>
+</header>
+
+<main>
+  <section id="viewList"></section>
+  <section id="viewTrip" hidden></section>
+</main>
+
+<div id="sheetWrap" hidden>
+  <div id="sheetMask"></div>
+  <div id="sheet" role="dialog" aria-modal="true"></div>
+</div>
+
+<div id="toast" hidden></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   出行手册 —— 单文件 / 零地图API / 零后端 / localStorage
+   导航方式：点景点名一键复制，切到高德 App 粘贴即可（不接任何地图 API）
+   ===================================================================== */
+
+var LS_KEY = "travel_tool_v1";
+
+var db    = { version: 1, trips: [], activeTripId: null };
+/* dayFilter：详情页只看某一天。null = 全部 */
+var route = { view: "list", tripId: null, dayFilter: null };
+var pendingConfirm = null;
+
+/* ---------------- 工具 ---------------- */
+function $(sel, root){ return (root || document).querySelector(sel); }
+
+function uid(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+    return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+  });
+}
+
+/* 普通提示：深色胶囊，1.9 秒。
+   带 sub 的提示：绿色提示条 + 下方小字，1.5 秒（复制景点名用）。 */
+function toast(msg, sub){
+  var el = $("#toast");
+  el.innerHTML = esc(msg) + (sub ? '<span class="toast-sub">' + esc(sub) + '</span>' : "");
+  el.className = sub ? "ok" : "";
+  el.hidden = false;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.hidden = true; }, sub ? 1500 : 1900);
+}
+
+/* ---------------- 存取 ---------------- */
+function load(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      var d = JSON.parse(raw);
+      if(d && Object.prototype.toString.call(d.trips) === "[object Array]"){
+        return { version: 1, trips: d.trips, activeTripId: d.activeTripId || null };
+      }
+    }
+  }catch(e){ /* 隐私模式 / 数据损坏：回落到空库 */ }
+  return { version: 1, trips: [], activeTripId: null };
+}
+
+function save(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(db));
+  }catch(e){
+    toast("保存失败：浏览器存储不可用");
+  }
+}
+
+/* ---------------- 复制景点名（一键复制，不联网） ---------------- */
+
+/* 复制用的临时元素样式。
+   两条踩过的坑：
+   ① 不能放到屏幕外（left:-9999px）。部分安卓浏览器对屏幕外元素的选区不写剪贴板，
+      表现就是「execCommand 返回 true 但剪贴板是空的」。所以留在视口内 (top:0;left:0)。
+   ② 不能用 display:none / 1px，会选不中；用 2em + opacity:0 藏起来。 */
+function styleCopyEl(el){
+  el.setAttribute("aria-hidden", "true");
+  el.style.cssText =
+    "position:fixed;top:0;left:0;width:2em;height:2em;padding:0;border:0;margin:0;" +
+    "opacity:0;font-size:12pt;pointer-events:none";
+}
+
+/* 写法 A：textarea + 显式选区。
+   readonly 一定要能省就省 —— Chromium 上「readonly 的 textarea 会返回 true 但不写入剪贴板」，
+   安卓 WebView 更容易踩。所以只在不带 readonly 的版本失败后才用带 readonly 的兜底。 */
+function execCopyTextarea(s, readonly){
+  var ta = document.createElement("textarea");
+  ta.value = s;
+  if(readonly) ta.setAttribute("readonly", "");
+  ta.setAttribute("inputmode", "none");   /* 尽量别弹键盘 */
+  styleCopyEl(ta);
+  var prev = document.activeElement;
+  document.body.appendChild(ta);
+  var ok = false;
+  try{
+    ta.focus({ preventScroll: true });                  /* 不 focus 常常选不中 */
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);           /* iOS Safari 必须显式给区间 */
+    ok = document.execCommand("copy") === true;
+  }catch(err){ ok = false; }
+  try{ document.body.removeChild(ta); }catch(e2){}
+  if(prev && prev.focus){ try{ prev.focus({ preventScroll: true }); }catch(e3){} }
+  return ok;
+}
+
+/* 写法 B：contenteditable + Range 选中。
+   不需要 focus，所以手机上不会弹键盘，也不受 readonly 那套 bug 影响。 */
+function execCopyRange(s){
+  var div = document.createElement("div");
+  div.textContent = s;
+  div.setAttribute("contenteditable", "true");
+  div.style.whiteSpace = "pre-wrap";
+  div.style.wordBreak = "break-all";
+  styleCopyEl(div);
+  document.body.appendChild(div);
+  var sel = window.getSelection ? window.getSelection() : null;
+  var ok = false;
+  try{
+    var range = document.createRange();
+    range.selectNodeContents(div);
+    if(sel){ sel.removeAllRanges(); sel.addRange(range); }
+    ok = document.execCommand("copy") === true;
+  }catch(err){ ok = false; }
+  try{ if(sel) sel.removeAllRanges(); }catch(e2){}
+  try{ document.body.removeChild(div); }catch(e3){}
+  return ok;
+}
+
+/* 老式 execCommand 同步复制 —— 兼容面最广的一条路（file:// 和各家 WebView 都认）。
+   关键：整段必须在用户点击的「同一个同步 tick」内跑完，
+   中间一旦穿插 await / setTimeout / promise.then，安卓 WebView 就认为用户手势已失效而拒绝执行。
+
+   这里把三种写法都跑一遍、都写同样的文字：因为 execCommand 会「谎报成功」，
+   只试一种就可能被假 true 骗过去；三种都试，任意一种真写进去就赚到。 */
+function copyByExec(s){
+  if(typeof document.execCommand !== "function") return false;
+  var attempts = [
+    function(){ return execCopyRange(s); },            /* 不弹键盘，先试 */
+    function(){ return execCopyTextarea(s, false); },  /* 不带 readonly */
+    function(){ return execCopyTextarea(s, true); }    /* 带 readonly，最后兜底 */
+  ];
+  var anyOk = false;
+  for(var i = 0; i < attempts.length; i++){
+    try{ if(attempts[i]()) anyOk = true; }catch(e){}
+  }
+  return anyOk;
+}
+
+function copyName(text){
+  var s = String(text == null ? "" : text);
+  function done(){ toast("已复制", "打开高德 APP 粘贴即可导航"); }
+  function fail(){ manualCopySheet(s); }
+
+  /* ① 同步把三种 execCommand 写法都跑一遍（全部在点击手势内） */
+  var execOk = copyByExec(s);
+
+  /* ② 同时再走一次异步 Clipboard API：内容一样，两个通道互不冲突。
+        execCommand 可能谎报成功，所以这条无论 execOk 与否都照样发。 */
+  var clip = null;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try{ clip = navigator.clipboard.writeText(s); }catch(e){ clip = null; }
+  }
+
+  /* ③ 事后核对：execCommand 会「返回 true 但剪贴板是空的」（某些安卓浏览器的老毛病）。
+        只要浏览器肯让读剪贴板，就偷偷读回来比对一次；对不上就不骗用户，直接给长按兜底。
+        注意：只在「已经授权读剪贴板」时才读——否则某些浏览器会弹权限询问框，
+        复制一下弹个框更烦人，所以宁可不核对也不打扰用户。 */
+  function verify(){
+    if(!(navigator.clipboard && navigator.clipboard.readText)) return;
+    function read(){
+      var r;
+      try{ r = navigator.clipboard.readText(); }catch(e){ return; }
+      if(!r || typeof r.then !== "function") return;
+      r.then(function(t){
+        /* 读到内容里没有我们要复制的字，才算真的没成功 */
+        if(String(t == null ? "" : t).indexOf(s) < 0) manualCopySheet(s);
+      }, function(){
+        /* 读不到（没授权 / file:// 限制）就算了，不要因此打扰用户 */
+      });
+    }
+    try{
+      var q = navigator.permissions && navigator.permissions.query
+        ? navigator.permissions.query({ name: "clipboard-read" }) : null;
+      if(q && typeof q.then === "function"){
+        q.then(function(st){
+          if(st && st.state === "granted") read();
+        }, function(){ read(); });   /* 查不了权限的浏览器照旧尝试读一次 */
+        return;
+      }
+    }catch(e){}
+    read();
+  }
+
+  if(execOk){
+    if(clip && typeof clip.then === "function"){
+      /* 异步那路只用于兜底，成功失败都不再打扰用户 */
+      clip.then(function(){}, function(){});
+    }
+    done();
+    verify();
+    return;
+  }
+
+  /* ④ execCommand 没报成功：等 Clipboard API 的结果 */
+  if(clip && typeof clip.then === "function"){
+    clip.then(function(){ done(); verify(); }, fail);
+    return;
+  }
+
+  /* ⑤ 全都不通：弹出文本框让用户长按手动复制 */
+  fail();
+}
+
+/* 最后兜底：把景点名放进一个已选中的输入框，用户长按就能复制。
+   这条路不依赖任何剪贴板权限，所有浏览器都能用。 */
+function manualCopySheet(s){
+  openSheet(
+    '<div class="form"><h2>请长按下面文字复制</h2>' +
+    '<div class="hint">这个浏览器不允许自动复制，请长按框里的文字 → 全选 → 复制，再切到高德 App 粘贴。</div>' +
+    '<input id="mcBox" readonly value="' + esc(s) + '">' +
+    '<div class="actions"><button type="button" class="btn primary" data-act="closeSheet">知道了</button></div>' +
+    '</div>'
+  );
+  var box = $("#mcBox");
+  if(box){
+    try{ box.focus(); box.select(); box.setSelectionRange(0, box.value.length); }catch(e){}
+  }
+}
+
+/* ---------------- 统计 ---------------- */
+function stats(t){
+  var total = 0, done = 0;
+  (t.days || []).forEach(function(d){
+    (d.items || []).forEach(function(i){ total++; if(i.done) done++; });
+  });
+  return { total: total, done: done };
+}
+
+function curTrip(){
+  return db.trips.filter(function(t){ return t.id === route.tripId; })[0] || null;
+}
+
+function findDay(t, dayId){
+  return (t.days || []).filter(function(d){ return d.id === dayId; })[0] || null;
+}
+
+/* =====================================================================
+   渲染
+   ===================================================================== */
+function render(){
+  if(route.view === "trip" && !curTrip()){ route.view = "list"; route.tripId = null; }
+  swipeDrag = null; openSwipe = null;      // 重绘后旧的左滑状态作废
+  if(route.view === "trip") renderTrip(); else renderList();
+  window.scrollTo(0, 0);
+}
+
+function renderList(){
+  route.view = "list";
+  $("#topTitle").textContent = "出行手册";
+  $("#backBtn").hidden = true;
+  $("#menuBtn").hidden = false;
+  $("#viewTrip").hidden = true;
+  var v = $("#viewList");
+  v.hidden = false;
+
+  var h = "";
+  if(!db.trips.length){
+    h += '<div class="empty">还没有行程<br><span class="muted small">点下面的按钮，新建第一个行程</span></div>';
+  }else{
+    h += db.trips.map(function(t){
+      var s = stats(t);
+      var pct = s.total ? Math.round(s.done / s.total * 100) : 0;
+      return swipeWrap(t.id, null,
+        '<button class="card" data-act="openTrip" data-id="' + t.id + '">' +
+          '<div class="card-t">' + esc(t.title) + '</div>' +
+          '<div class="muted small">' + (t.days || []).length + ' 天 · ' + s.total + ' 个景点' +
+            (s.total ? ' · 已完成 ' + s.done + '/' + s.total : '') + '</div>' +
+          '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+        '</button>',
+        "editTrip", "delTrip", "trip-swipe");
+    }).join("");
+  }
+  h += '<button class="btn primary block" data-act="newTrip">＋ 新建行程</button>';
+  h += '<div class="plan-entry"><button class="btn ghost block" data-act="planSheet">📋 粘贴行程自动识别</button></div>';
+  v.innerHTML = h;
+}
+
+function renderTrip(){
+  var t = curTrip();
+  route.view = "trip";
+  db.activeTripId = t.id;
+  $("#topTitle").textContent = t.title;
+  $("#backBtn").hidden = false;
+  $("#menuBtn").hidden = true;
+  $("#viewList").hidden = true;
+  var v = $("#viewTrip");
+  v.hidden = false;
+
+  var days = t.days || [];
+  var s = stats(t);
+
+  /* 筛选值失效（天被删掉了）就回落到全部 */
+  if(route.dayFilter && !findDay(t, route.dayFilter)) route.dayFilter = null;
+
+  /* ---- 头部：统计 + 标题 + TOTAL/DAY 筛选 ---- */
+  var h = '<div class="trip-head">';
+  h +=   '<div class="th-stats">共 ' + days.length + ' 天 · ' + s.total + ' 个景点' +
+           (s.total ? ' · 已完成 ' + s.done + '/' + s.total : '') + '</div>';
+  h +=   '<div class="th-title">' + esc(t.title) + '</div>';
+
+  h +=   '<div class="day-tabs">';
+  h +=     '<button class="tab tab-total' + (route.dayFilter ? "" : " on") + '" data-act="filterDay" data-id="">TOTAL</button>';
+  h +=     '<span class="sep"></span>';
+  h +=     '<span class="tab-label">DAY</span>';
+  days.forEach(function(d, di){
+    h +=   '<button class="tab' + (route.dayFilter === d.id ? " on" : "") +
+             '" data-act="filterDay" data-id="' + d.id + '">' + (di + 1) + '</button>';
+  });
+  h +=   '</div>';
+
+  if(route.dayFilter){
+    h +=   '<div class="th-note">只看第 ' + (days.map(function(d){ return d.id; }).indexOf(route.dayFilter) + 1) +
+             ' 天 · 点 TOTAL 看全部</div>';
+  }
+  h += '</div>';
+
+  /* ---- 天 ---- */
+  days.forEach(function(d, di){
+    if(route.dayFilter && d.id !== route.dayFilter) return;
+    var items = d.items || [];
+    h += '<section class="day">';
+    h +=   swipeWrap(d.id, null,
+             '<div class="day-h">' +
+               '<div><span class="day-label">' + esc(d.label || ("Day " + (di + 1))) + '</span>' +
+               (d.date ? ' <span class="muted small">' + esc(d.date) + '</span>' : '') + '</div>' +
+             '</div>',
+             "editDay", "delDay");
+    h +=   '<div class="day-body">';
+    if(items.length){
+      h += items.map(function(it){ return itemRow(it, d.id); }).join("");
+    }else{
+      h += '<div class="muted small pad" style="padding-left:14px">这天还没有安排</div>';
+    }
+    h +=     '<button class="btn ghost block" data-act="addItem" data-id="' + d.id + '">＋ 添加景点</button>';
+    h +=   '</div>';
+    h += '</section>';
+  });
+
+  h += '<button class="btn primary block" data-act="addDay">＋ 添加一天</button>';
+  h += '<div class="actions2"><button class="btn ghost" data-act="editTrip" data-id="' + t.id + '">编辑行程</button></div>';
+  v.innerHTML = h;
+}
+
+/* 日期 + 时间的显示：2026-10-05 + 09:30 → 「10月5日　09:30」 */
+function fmtWhen(it){
+  var out = [];
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(it.date || "").trim());
+  if(m) out.push(parseInt(m[2], 10) + "月" + parseInt(m[3], 10) + "日");
+  else if(it.date) out.push(String(it.date).trim());
+  if(it.time) out.push(String(it.time).trim());
+  return out.join("　");
+}
+
+function itemRow(it, dayId){
+  var when = fmtWhen(it);
+  var sub = "";
+  if(when) sub += esc(when);
+  if(it.note) sub += (sub ? "　" : "") + esc(it.note);
+  return swipeWrap(dayId, it.id,
+    '<div class="item' + (it.done ? " done" : "") + '">' +
+      '<button class="check" data-act="toggleItem" data-id="' + dayId + '" data-id2="' + it.id + '" aria-label="标记完成">' +
+        (it.done ? "✓" : "") + '</button>' +
+      '<div class="item-main">' +
+        '<span class="item-name" data-act="copyName" data-id="' + dayId + '" data-id2="' + it.id + '" ' +
+          'role="button" tabindex="0" aria-label="复制景点名">' + esc(it.name) + '</span>' +
+        (sub ? '<div class="muted small item-note">' + sub + '</div>' : '') +
+      '</div>' +
+    '</div>',
+    "editItem", "delItem");
+}
+
+/* 左滑容器：内容在上层，修改/删除按钮藏在右侧，左滑露出
+   cls：可选，给外层 .swipe 附加 class（列表页卡片用 "trip-swipe"） */
+function swipeWrap(dayId, itemId, inner, editAct, delAct, cls){
+  var idAttr = itemId ? '" data-id2="' + itemId + '"' : '"';
+  return '<div class="swipe' + (cls ? " " + cls : "") + '">' +
+    '<div class="swipe-actions">' +
+      '<button class="swipe-btn edit" data-act="' + editAct + '" data-id="' + dayId + idAttr + '>修改</button>' +
+      '<button class="swipe-btn del" data-act="' + delAct + '" data-id="' + dayId + idAttr + '>删除</button>' +
+    '</div>' +
+    '<div class="swipe-inner">' + inner + '</div>' +
+  '</div>';
+}
+
+/* =====================================================================
+   弹层
+   ===================================================================== */
+function openSheet(html){
+  pendingConfirm = null;
+  var wrap = $("#sheetWrap");
+  $("#sheet").innerHTML = html;
+  wrap.hidden = false;
+  requestAnimationFrame(function(){ wrap.classList.add("open"); });
+}
+
+function closeSheet(){
+  var wrap = $("#sheetWrap");
+  if(wrap.hidden) return;
+  wrap.classList.remove("open");
+  setTimeout(function(){
+    wrap.hidden = true;
+    $("#sheet").innerHTML = "";
+  }, 200);
+}
+
+function confirmSheet(msg, onYes){
+  openSheet(
+    '<div class="form"><h2>' + esc(msg) + '</h2>' +
+    '<div class="actions">' +
+      '<button class="btn danger" data-act="confirmYes">确定</button>' +
+      '<button class="btn ghost" data-act="closeSheet">取消</button>' +
+    '</div></div>'
+  );
+  pendingConfirm = onYes;
+}
+
+/* ---------------- 行程表单 ---------------- */
+/* 老数据只有 title（如「东京5日游」），没有单独的 city / dayCount 字段。
+   这里尽力从标题还原；还原不出来就用现有的天数兜底，避免让用户从零填。 */
+/* 「两」是「二」的常用口语写法（柳州两日游），必须一起认 */
+var CN_NUM = { "一":1, "两":2, "二":2, "三":3, "四":4, "五":5, "六":6, "七":7, "八":8, "九":9, "十":10 };
+var CN_1_9 = "一两二三四五六七八九";
+var CN_2_9 = "两二三四五六七八九";
+
+/* 支持阿拉伯数字与中文数字（「柳州一日游」这种标题很常见） */
+function cnNum(s){
+  if(/^\d+$/.test(s)) return parseInt(s, 10);
+  if(CN_NUM[s]) return CN_NUM[s];
+  var m = new RegExp("^十([" + CN_1_9 + "])$").exec(s);                       // 十一 ~ 十九
+  if(m) return 10 + CN_NUM[m[1]];
+  m = new RegExp("^([" + CN_2_9 + "])十$").exec(s);                           // 二十 ~ 九十
+  if(m) return CN_NUM[m[1]] * 10;
+  m = new RegExp("^([" + CN_2_9 + "])十([" + CN_1_9 + "])$").exec(s);          // 二十一 ~ 九十九
+  if(m) return CN_NUM[m[1]] * 10 + CN_NUM[m[2]];
+  return 0;
+}
+
+function parseTripTitle(title){
+  var s = String(title == null ? "" : title).trim();
+  var m = new RegExp("^(.+?)\\s*(\\d+|[" + CN_1_9 + "十]+)\\s*日游$").exec(s);
+  if(m){
+    var n = cnNum(m[2]);
+    if(n > 0) return { city: m[1].trim(), dayCount: n };
+  }
+  return { city: s, dayCount: 0 };
+}
+
+function tripCityDays(t){
+  var r = parseTripTitle(t.title);
+  /* 显式字段优先：新格式保存时 city / dayCount 一定是对的，
+     标题解析只用于兼容老数据。 */
+  if(t.city) r.city = t.city;
+  if(t.dayCount > 0) r.dayCount = t.dayCount;
+  if(!(r.dayCount > 0)) r.dayCount = (t.days || []).length || 1;
+  return r;
+}
+
+function tripSheet(tripId){
+  var t  = tripId ? db.trips.filter(function(x){ return x.id === tripId; })[0] : null;
+  var cd = t ? tripCityDays(t) : { city: "", dayCount: "" };
+  openSheet(
+    '<form class="form" id="tripForm">' +
+      '<h2>' + (t ? "编辑行程" : "新建行程") + '</h2>' +
+      '<label>城市名称<input id="t_city" autocomplete="off" placeholder="如 柳州" value="' +
+        esc(cd.city) + '"></label>' +
+      '<label>天数<input id="t_days" type="text" inputmode="numeric" autocomplete="off" placeholder="如 3" value="' +
+        esc(cd.dayCount) + '"></label>' +
+      '<div class="hint">保存后标题自动拼成「城市 + 天数 + 日游」，例如「柳州3日游」。' +
+        '新建时会按天数一次性建好 Day 1 ~ Day N。</div>' +
+      '<div class="actions">' +
+        '<button type="submit" class="btn primary">保存</button>' +
+        '<button type="button" class="btn ghost" data-act="closeSheet">取消</button>' +
+      '</div>' +
+      (t ? '<div class="actions2"><button type="button" class="btn tiny danger" data-act="delTrip" data-id="' +
+             t.id + '">删除整个行程</button></div>' : "") +
+    '</form>'
+  );
+  $("#tripForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var city    = $("#t_city").value.trim();
+    var daysRaw = $("#t_days").value.trim();
+
+    /* 校验：任何一项不合规都只弹提示，不抛异常、不崩溃 */
+    if(!city){ toast("请填写城市名称"); return; }
+    if(!daysRaw){ toast("请填写天数"); return; }
+    if(!/^\d+$/.test(daysRaw)){ toast("天数只能填数字"); return; }
+    var n = parseInt(daysRaw, 10);
+    if(!(n >= 1 && n <= 365)){ toast("天数请填 1~365 之间的整数"); return; }
+
+    var title = city + n + "日游";
+
+    if(t){
+      /* 编辑：改标题 / 城市 / 天数。天数变多自动补天；变少不删天（删天会连带
+         删掉里面的景点，属于不可逆的数据丢失，交给用户自己左滑删）。 */
+      t.title = title; t.city = city; t.dayCount = n;
+      t.days = t.days || [];
+      if(n > t.days.length){
+        for(var j = t.days.length; j < n; j++){
+          t.days.push({ id: uid(), label: "Day " + (j + 1), date: "", items: [] });
+        }
+      }else if(n < t.days.length){
+        toast("标题已改；多出的 " + (t.days.length - n) + " 天没有自动删除，可左滑逐天删");
+      }
+    }else{
+      /* 新建：按天数一次性建好 Day 1 ~ Day N */
+      var nt = { id: uid(), title: title, city: city, dayCount: n, days: [] };
+      for(var k = 0; k < n; k++){
+        nt.days.push({ id: uid(), label: "Day " + (k + 1), date: "", items: [] });
+      }
+      db.trips.push(nt);
+      route.tripId = nt.id;
+      db.activeTripId = nt.id;
+      route.view = "trip";
+    }
+    save(); closeSheet(); render();
+  });
+}
+
+/* ---------------- 天表单 ---------------- */
+function daySheet(dayId){
+  var t = curTrip();
+  var d = findDay(t, dayId);
+  if(!d) return;
+  var idx = t.days.indexOf(d);
+  openSheet(
+    '<form class="form" id="dayForm">' +
+      '<h2>编辑这一天</h2>' +
+      '<label>标题<input id="d_label" autocomplete="off" placeholder="如 Day 1 / 抵达日" value="' +
+        esc(d.label || ("Day " + (idx + 1))) + '"></label>' +
+      '<label>日期（选填）<input id="d_date" type="date" value="' + esc(d.date || "") + '"></label>' +
+      '<div class="actions">' +
+        '<button type="submit" class="btn primary">保存</button>' +
+        '<button type="button" class="btn ghost" data-act="closeSheet">取消</button>' +
+      '</div>' +
+      '<div class="actions2">' +
+        '<button type="button" class="btn tiny" data-act="moveDayUp" data-id="' + d.id + '">↑ 上移</button>' +
+        '<button type="button" class="btn tiny" data-act="moveDayDown" data-id="' + d.id + '">↓ 下移</button>' +
+        '<button type="button" class="btn tiny danger" data-act="delDay" data-id="' + d.id + '">删除</button>' +
+      '</div>' +
+    '</form>'
+  );
+  $("#dayForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    d.label = $("#d_label").value.trim() || ("Day " + (idx + 1));
+    d.date  = $("#d_date").value;
+    save(); closeSheet(); render();
+  });
+}
+
+/* ---------------- 景点表单 ---------------- */
+function itemSheet(dayId, itemId){
+  var t = curTrip();
+  var d = findDay(t, dayId);
+  if(!d) return;
+  var it = itemId ? (d.items || []).filter(function(x){ return x.id === itemId; })[0] : null;
+  openSheet(
+    '<form class="form" id="itemForm">' +
+      '<h2>' + (it ? "编辑景点" : "添加景点") + '</h2>' +
+      '<label>景点名称 <span class="req">必填</span>' +
+        '<input id="f_name" autocomplete="off" placeholder="如 浅草寺" value="' + esc(it ? it.name : "") + '"></label>' +
+      '<div class="grid2">' +
+        '<label>日期（选填）<input id="f_date" type="date" value="' + esc(it ? it.date : "") + '"></label>' +
+        '<label>时间（选填）<input id="f_time" type="time" value="' + esc(it ? it.time : "") + '"></label>' +
+      '</div>' +
+      '<div class="hint">点景点名会一键复制，「打开高德 App 粘贴」就能搜到。' +
+        '日期可以跨天：比如第 1 天和第 3 天各安排一个景点，都能各自标上日期。</div>' +
+      '<label>备注（选填）<textarea id="f_note" rows="2" placeholder="门票、预约、想吃什么…">' +
+        esc(it ? it.note : "") + '</textarea></label>' +
+      '<div class="actions">' +
+        '<button type="submit" class="btn primary">保存</button>' +
+        '<button type="button" class="btn ghost" data-act="closeSheet">取消</button>' +
+      '</div>' +
+      (it ? '<div class="actions2">' +
+              '<button type="button" class="btn tiny" data-act="moveItemUp" data-id="' + dayId + '" data-id2="' + it.id + '">↑ 上移</button>' +
+              '<button type="button" class="btn tiny" data-act="moveItemDown" data-id="' + dayId + '" data-id2="' + it.id + '">↓ 下移</button>' +
+              '<button type="button" class="btn tiny danger" data-act="delItem" data-id="' + dayId + '" data-id2="' + it.id + '">删除</button>' +
+            '</div>' : "") +
+    '</form>'
+  );
+  $("#itemForm").addEventListener("submit", function(ev){
+    ev.preventDefault();
+    var name = $("#f_name").value.trim();
+    if(!name){ toast("请填写景点名称"); return; }
+    var data = {
+      name: name,
+      date: $("#f_date").value.trim(),
+      time: $("#f_time").value.trim(),
+      note: $("#f_note").value.trim()
+    };
+    if(it){ for(var k in data) it[k] = data[k]; }
+    else{
+      d.items = d.items || [];
+      d.items.push({ id: uid(), name: data.name, date: data.date,
+                     time: data.time, note: data.note, done: false });
+    }
+    save(); closeSheet(); render();
+  });
+}
+
+/* ---------------- 备份 / 恢复 ---------------- */
+function backupSheet(){
+  var json = JSON.stringify(db, null, 2).replace(/</g, "\\u003c");
+  openSheet(
+    '<div class="form">' +
+      '<h2>备份 / 恢复</h2>' +
+      '<div class="hint">全程本地操作，不联网。换手机或清缓存前，把下面内容复制到备忘录 / 微信文件传输助手保存。</div>' +
+      '<label>导出（点文本框可全选）<textarea id="expBox" rows="6" readonly>' + esc(json) + '</textarea></label>' +
+      '<div class="actions"><button class="btn primary" data-act="copyExport">复制全部</button></div>' +
+      '<label style="margin-top:16px">导入（粘贴 JSON 后点右侧按钮）<textarea id="impBox" rows="4" placeholder="在此粘贴之前导出的内容"></textarea></label>' +
+      '<div class="actions"><button class="btn danger" data-act="applyImport">导入并覆盖现有数据</button></div>' +
+      '<div class="actions"><button class="btn ghost" data-act="closeSheet">关闭</button></div>' +
+    '</div>'
+  );
+  var box = $("#expBox");
+  box.addEventListener("click", function(){ box.select(); });
+}
+
+/* =====================================================================
+   粘贴行程解析（纯本地：零网络、零依赖、零 API）
+   输入：豆包等 AI 生成的行程文本（格式可以很乱）
+   输出：{ title, city, days:[{label, items:[{name,time,note}]}]} 或 null
+   ===================================================================== */
+
+/* ---------------- 中文数字 ---------------- */
+var CN_NUM = { "一":1, "两":2, "二":2, "三":3, "四":4, "五":5, "六":6, "七":7, "八":8, "九":9, "十":10 };
+var CN_1_9 = "一两二三四五六七八九";
+var CN_2_9 = "两二三四五六七八九";
+
+function cnNum(s){
+  if(/^\d+$/.test(s)) return parseInt(s, 10);
+  if(CN_NUM[s]) return CN_NUM[s];
+  var m = new RegExp("^十([" + CN_1_9 + "])$").exec(s);
+  if(m) return 10 + CN_NUM[m[1]];
+  m = new RegExp("^([" + CN_2_9 + "])十$").exec(s);
+  if(m) return CN_NUM[m[1]] * 10;
+  m = new RegExp("^([" + CN_2_9 + "])十([" + CN_1_9 + "])$").exec(s);
+  if(m) return CN_NUM[m[1]] * 10 + CN_NUM[m[2]];
+  return 0;
+}
+function planNum(s){
+  if(/^\d+$/.test(s)) return parseInt(s, 10);
+  return cnNum(s);
+}
+
+/* ---------------- 天数标题 ---------------- */
+/* Day 1 / Day1 / DAY-1 / D1 / ## Day 1 / 【Day 1】/ (Day 1)
+   捕获组：1=天数  2=分隔符  3=同一行剩余内容 */
+var PLAN_DAY_HEAD = new RegExp(
+  "^(?:#{1,6}\\s*)?[\\[【(（]?\\s*(?:day|d)\\s*[-_]?\\s*(\\d{1,3})\\s*[\\]】)）]?" +
+  "\\s*([:：、.．\\-—]?)\\s*(.*)$", "i");
+
+/* 第一天 / 第1天 / 第十二天（同样三组） */
+var PLAN_CN_DAY = new RegExp(
+  "^(?:#{1,6}\\s*)?[\\[【(（]?\\s*第\\s*([0-9" + CN_1_9 + "十]{1,3})\\s*天\\s*[\\]】)）]?" +
+  "\\s*([:：、.．\\-—]?)\\s*(.*)$");
+
+/* 「Day 1 抵达日」里的小标题（白名单，避免把景点名当标题吃掉） */
+var PLAN_DAY_SUB = /^(?:抵达|出发|返程|回程|离开|市区|周边|自由活动|机动|休整|购物|休闲|游玩|游览|观光|赶路|路上)(?:日|游)?$/;
+
+/* ---------------- 过滤规则 ---------------- */
+/* 整行就是个小标题 → 不是景点；出现在行程中间时还意味着「行程结束、后面是别的段落」 */
+var PLAN_SKIP = new RegExp(
+  "^(?:行程安排|行程概览|行程总览|行程|日程|安排|路线|总览|概览|" +
+  "注意事项?|温馨提示|小贴士|tips?|建议|" +
+  "交通|交通方式|住宿|酒店|美食|美食推荐|餐厅推荐|" +
+  "预算|费用|花费|门票|购物|准备|行李|打包|天气|穿搭|" +
+  "其他|备注|说明|总结|以下|如下|附|附录|" +
+  "门票信息|开放时间|营业时间|地址|电话)" +
+  "[\\s:：、.．\\-—]*$", "i");
+
+/* 「关键词：内容」→ 整行丢弃（内容也是说明，不是地名） */
+var PLAN_META = /^(?:门票|开放时间|营业时间|交通|交通方式|地址|电话|费用|预算|人均|耗时|距离|车程|建议|注意|提示|温馨提示|备注|说明|小贴士|tips?|时间|活动|安排|路线)$/i;
+
+/* 「关键词：内容」→ 内容是地名，保留 */
+var PLAN_META_KEEP = /^(?:住宿|酒店|民宿|美食|餐厅|夜宵|早餐|午餐|晚餐|加餐|景点|游玩|游览)$/;
+
+/* 以这些词开头 → 不是地名 */
+var PLAN_NOT_PLACE = new RegExp(
+  "^(?:门票|开放时间|营业时间|建议|注意|提示|交通|地址|电话|费用|预算|" +
+  "人均|耗时|距离|车程|步行|地铁|公交|打车|自驾|记得|可以|需要|位于|大约|预计|" +
+  "免费|收费|全天|开放|闭馆|营业)" + "[\\s:：、.．\\-—]");
+
+/* 明显是散文而不是地名 */
+var PLAN_PROSE = /(?:不错|很好|好玩|值得|建议|记得|一定要|如果|因为|所以|但是|而且|然后|就是|我们|你们|他们|大家|今天|明天|昨天|心情|感觉|觉得|可以|需要|适合|非常|特别|超级|十分|比较|有点|大概|差不多|推荐)/;
+
+/* Markdown 表格的表头单元格 */
+var PLAN_TABLE_HEAD = /^(?:时间|行程|安排|景点|地点|名称|备注|内容|项目|天数|day|上午|下午|晚上|中午|早上|day\s*\d+)$/i;
+
+/* ---------------- 切句 ---------------- */
+function planSplitClauses(line){
+  var s = String(line);
+
+  /* Markdown 表格行：按 | 切格子，丢掉表头与分隔行，再逐格递归 */
+  if(/^\s*\|/.test(s)){
+    var cells = s.split("|").map(function(c){ return c.trim(); })
+                 .filter(function(c){ return c && !/^[-:：\s]+$/.test(c); });
+    var out = [];
+    for(var ci = 0; ci < cells.length; ci++){
+      if(PLAN_TABLE_HEAD.test(cells[ci])) continue;
+      out = out.concat(planSplitClauses(cells[ci]));
+    }
+    return out;
+  }
+
+  s = s.replace(/\s*(?:→|➡|⇒|->|-->)\s*/g, "\n");            // 箭头
+  s = s.replace(/\s*[；;]\s*/g, "\n");                          // 分号
+  s = s.replace(/\s*[。]\s*/g, "\n");                           // 句号
+  s = s.replace(/\s+(?=\d{1,3}\s*[.、．)）]\s*\S)/g, "\n");       // 行内下一个编号
+  s = s.replace(/\s*[，,]\s*(?=(?:上午|下午|中午|早上|早晨|晚上|傍晚|夜里|凌晨|然后|接着|随后|之后|最后|再|又|以及|还有|早餐|午餐|晚餐|住宿|交通|前往|去))/g, "\n");
+  s = s.replace(/\s*[、]\s*/g, "\n");                           // 顿号
+  return s.split("\n").map(function(x){ return x.trim(); }).filter(Boolean);
+}
+
+/* ---------------- 去掉各种前缀 ---------------- */
+function planStripPrefix(s){
+  var guard = 0;
+  while(guard++ < 14){
+    var before = s;
+    s = s.replace(/^\s*[-–—*•·▪◦●○>]+\s*/, "");                                  // 项目符号
+    s = s.replace(/^\s*(?:\d{1,3}\s*[.、．)）]|[(（]\s*\d{1,3}\s*[)）]|[一二三四五六七八九十]{1,3}\s*[、.．)）])\s*/, ""); // 编号
+    s = s.replace(/^\s*\d{1,2}\s*[点時时]\s*(?:半|\d{1,2}\s*分)?\s*/, "");        // 「9点」「9点半」
+    s = s.replace(/^\s*(?:上午|下午|中午|早上|早晨|晚上|傍晚|夜里|凌晨|早餐后|午餐后|晚餐后|饭后|随后|然后|接着|之后|最后|首先|先)\s*[，,、:：]?\s*/, "");
+    s = s.replace(/^\s*(?:乘车|步行|打车|自驾|坐车|骑车|坐船|乘船)?(?:前往|去往|去到|去|到达|抵达|出发|游览|参观|游玩|逛|打卡|体验|入住|吃|品尝|享用|返回|回到|赶到|奔赴|欣赏|拍摄)\s*/, "");
+    if(s === before) break;
+  }
+  return s.trim();
+}
+
+/* ---------------- 单段 → 景点 ---------------- */
+function planToItem(seg, strict){
+  var s = String(seg).replace(/[*`_]/g, "").trim();
+  if(!s) return null;
+
+  /* 有没有列表符号（严格模式下判断这行像不像行程） */
+  var marked = /^\s*(?:[-–—*•·▪◦●○>]|\d{1,3}\s*[.、．)）]|[(（]\s*\d{1,3}\s*[)）])/.test(s);
+
+  s = s.replace(/^\s*[-–—*•·○●▪◦>]+\s*/, "")
+       .replace(/^\s*(?:\d{1,3}\s*[.、．)）]|[(（]\s*\d{1,3}\s*[)）])\s*/, "");
+
+  /* 时间前缀。必须排在编号剥离之后，否则「08:30 天安门」会被当成编号 08 切掉 */
+  var time = "";
+  var tm = /^(\d{1,2}\s*[:：]\s*\d{2}(?:\s*[-–—~～至]\s*\d{1,2}\s*[:：]\s*\d{2})?)\s*/.exec(s);
+  if(tm){
+    time = tm[1].replace(/\s+/g, "").replace(/：/g, ":");
+    s = s.slice(tm[0].length);
+  }
+
+  s = planStripPrefix(s);
+  if(!s) return null;
+
+  var name = s, note = "";
+
+  /* 「名称 - 说明」：两侧要有空格，避免误伤 09:00-11:00 */
+  var dm = /^(.+?)\s+[-–—－]\s+(.+)$/.exec(s);
+  if(dm){ name = dm[1].trim(); note = dm[2].trim(); }
+
+  /* 「关键词：内容」 */
+  var cm = /^([^：:]{1,12})[：:]\s*(.+)$/.exec(name);
+  if(cm){
+    var left = cm[1].trim(), right = cm[2].trim();
+    if(PLAN_META.test(left)) return null;
+    if(PLAN_META_KEEP.test(left)){ name = right; }
+    else { name = left; note = note ? (right + "　" + note) : right; }
+  }
+
+  /* 「名称，说明」 */
+  var c2 = /^([^，,。;；]{1,30})[，,。;；]\s*(.+)$/.exec(name);
+  if(c2){ name = c2[1].trim(); if(!note) note = c2[2].trim(); }
+
+  name = name.replace(/^[\s,，、;；.。]+/, "").replace(/[\s,，、;；.。]+$/, "").trim();
+  if(!name) return null;
+  if(name.length > 30){
+    var cut = name.split(/[，,。;；]/)[0].trim();
+    if(cut && cut.length >= 2) name = cut; else return null;
+  }
+  if(name.length < 2) return null;
+  if(!/[\u4e00-\u9fa5A-Za-z]/.test(name)) return null;
+  if(PLAN_SKIP.test(name)) return null;
+  if(PLAN_NOT_PLACE.test(name)) return null;
+  if(PLAN_PROSE.test(name)) return null;
+
+  /* 没有 Day 标记时的兜底：既没列表符号、又不像短地名的，判为散文 */
+  if(strict && !marked && (name.length > 8 || /[，,]/.test(name))) return null;
+
+  return { name: name, time: time, note: note };
+}
+
+/* ---------------- 标题 ---------------- */
+function planAsTitle(line){
+  var s = String(line).replace(/^#{1,6}\s*/, "").replace(/\*\*/g, "").trim();
+  if(!s || s.length > 40) return null;
+  var CN = "\\d+|[一两二三四五六七八九十]+";
+  var m = new RegExp("^(.+?)\\s*(" + CN + ")\\s*日游\\s*$").exec(s);
+  if(m){ var n = planNum(m[2]); if(n > 0) return { title: s, city: m[1].trim() }; }
+  /* 「三天两夜」「3天2晚」这类：城市取前面的部分，天数按「天/日」那个数 */
+  m = new RegExp("^(.+?)\\s*(" + CN + ")\\s*[天日]\\s*(?:" + CN + ")\\s*[夜晚]\\s*(?:旅游|旅行|行程|自由行)?\\s*(?:计划|安排|攻略|行程)?\\s*$").exec(s);
+  if(m){ var n3 = planNum(m[2]); if(n3 > 0) return { title: s, city: m[1].trim() }; }
+  m = new RegExp("^(.+?)\\s*(" + CN + ")\\s*[天日]\\s*(?:旅游|旅行|行程|自由行)?\\s*(?:计划|安排|攻略|行程)?\\s*$").exec(s);
+  if(m){ var n2 = planNum(m[2]); if(n2 > 0) return { title: s, city: m[1].trim() }; }
+  if(s.length <= 24 && /旅游计划|旅行计划|行程安排|之旅|攻略|自由行|行程$/.test(s)) return { title: s, city: "" };
+  return null;
+}
+
+/* ---------------- 一天的内容 ---------------- */
+function fillDay(d, arr, strict){
+  for(var i = 0; i < arr.length; i++){
+    var line = arr[i];
+
+    /* 遇到「注意事项 / 预算 / 美食推荐」这类后置小节 → 这天到此为止，
+       否则后面那些说明性文字会被误当成景点 */
+    if(PLAN_SKIP.test(line)){
+      if(d.items.length) break;
+      continue;
+    }
+
+    var parts = planSplitClauses(line);
+    for(var p = 0; p < parts.length; p++){
+      var seg = parts[p];
+      if(!seg || PLAN_SKIP.test(seg)) continue;
+      var it = planToItem(seg, strict);
+      if(!it) continue;
+      var dup = false;
+      for(var q = 0; q < d.items.length; q++){ if(d.items[q].name === it.name){ dup = true; break; } }
+      if(!dup) d.items.push(it);
+    }
+  }
+}
+
+/* ---------------- 主函数 ---------------- */
+function parsePlanText(text){
+  var raw = String(text == null ? "" : text).replace(/\r\n?/g, "\n").replace(/\u3000/g, " ");
+  var lines = raw.split("\n").map(function(l){ return l.trim(); }).filter(Boolean);
+  if(!lines.length) return null;
+
+  /* 找出所有天数标题。支持两种形态：
+     ① 整行就是标题（Day 1 / 第一天：…）
+     ② Markdown 表格的一行（| Day 1 | 柳侯公园、五星步行街 |） */
+  var heads = [];
+  for(var i = 0; i < lines.length; i++){
+    var dm = PLAN_DAY_HEAD.exec(lines[i]) || PLAN_CN_DAY.exec(lines[i]);
+    if(dm){
+      heads.push({ idx: i, num: planNum(dm[1]), sep: dm[2] || "", rest: (dm[3] || "").trim() });
+      continue;
+    }
+    /* 表格行：逐格找天数标题，剩下的格子当作这一天的正文 */
+    if(/^\s*\|/.test(lines[i])){
+      var cells = lines[i].split("|").map(function(c){ return c.trim(); })
+                   .filter(function(c){ return c && !/^[-:：\s]+$/.test(c); });
+      for(var ci = 0; ci < cells.length; ci++){
+        var cm2 = PLAN_DAY_HEAD.exec(cells[ci]) || PLAN_CN_DAY.exec(cells[ci]);
+        if(!cm2) continue;
+        /* 只取紧随天数的第一格当行程正文；再往后的格子（备注/时间）不是景点名 */
+        var after = cells.slice(ci + 1).filter(function(c){ return !PLAN_TABLE_HEAD.test(c); });
+        var tail = [];
+        if(cm2[3]) tail.push(cm2[3]);
+        if(after.length) tail.push(after[0]);
+        heads.push({ idx: i, num: planNum(cm2[1]), sep: cm2[2] || "", rest: tail.join("、") });
+        break;
+      }
+    }
+  }
+
+  /* 标题：只看第一个 Day 之前的内容 */
+  var title = "", city = "", titleIdx = -1;
+  var preEnd = heads.length ? heads[0].idx : lines.length;
+  for(var j = 0; j < preEnd; j++){
+    var tt = planAsTitle(lines[j]);
+    if(tt && !title){ title = tt.title; city = tt.city; titleIdx = j; }
+  }
+
+  var days = [];
+  function pushDay(label){ var d = { label: label, items: [] }; days.push(d); return d; }
+
+  if(heads.length){
+    for(var h = 0; h < heads.length; h++){
+      var hd = heads[h];
+      var lbl = "Day " + (hd.num > 0 ? hd.num : (h + 1));
+      var body = [];
+      if(hd.rest){
+        /* 有分隔符 → 一定是正文；没分隔符 → 只有白名单里的词才当小标题 */
+        if(!hd.sep && PLAN_DAY_SUB.test(hd.rest)) lbl += " · " + hd.rest;
+        else body.push(hd.rest);
+      }
+      var d = pushDay(lbl);
+      var end = (h + 1 < heads.length) ? heads[h + 1].idx : lines.length;
+      body = body.concat(lines.slice(hd.idx + 1, end));
+      fillDay(d, body, false);
+    }
+  }else{
+    /* 没有 Day 标记：全部塞进 Day 1，跳过标题行，并用严格模式过滤散文 */
+    var d1 = pushDay("Day 1");
+    var rest = lines.filter(function(_, k){ return k !== titleIdx; });
+    fillDay(d1, rest, true);
+  }
+
+  var total = days.reduce(function(a, x){ return a + x.items.length; }, 0);
+  if(!total) return null;
+
+  /* 标题一律按「城市 + 实际天数 + 日游」生成（Day1、Day2 就是 2 日游），
+     不照抄原文标题、也不编造「导入的行程」。没有城市才留空，交给界面让用户填。 */
+  if(city) title = city + days.length + "日游";
+  else title = "";
+  return { title: title, city: city, days: days };
+}
+
+/* =====================================================================
+   粘贴行程（纯本地解析，零网络 / 零 API）
+   流程：粘贴 → 自动识别 → 预览确认 → 写入 localStorage
+   ===================================================================== */
+var planPending = null;      // 最近一次识别结果
+
+function planSheet(prefill){
+  openSheet(
+    '<div class="form">' +
+      '<h2>粘贴行程</h2>' +
+      '<div class="hint">把豆包等 AI 生成的行程原文粘进来，点「自动识别」自动分好天数、提出景点。' +
+        '识别结果先预览，确认后才写入，不会覆盖原有行程。全程本地处理，不联网。</div>' +
+      '<label>行程文本<textarea id="p_text" rows="9" placeholder="例：\nDay 1\n1. 柳侯公园\n2. 五星商业步行街\nDay 2\n1. 马鞍山公园"></textarea></label>' +
+      '<div class="actions">' +
+        '<button class="btn primary" data-act="planParse">自动识别</button>' +
+        '<button class="btn ghost" data-act="closeSheet">取消</button>' +
+      '</div>' +
+    '</div>'
+  );
+  var ta = $("#p_text");
+  if(ta && prefill) ta.value = prefill;
+}
+
+function planParse(){
+  var raw = ($("#p_text") ? $("#p_text").value : "") || "";
+  var p = null;
+  /* 解析失败绝不抛异常，只提示 */
+  try{ p = parsePlanText(raw); }catch(err){ p = null; }
+  if(!p){ toast("格式无法识别，请手动添加"); return; }
+  p.raw = raw;
+  planPending = p;
+  planPreviewSheet(p);
+}
+
+function planPreviewSheet(p){
+  var n = p.days.length;
+  var total = 0;
+  for(var i = 0; i < n; i++) total += p.days[i].items.length;
+
+  /* 标题 = 城市 + 天数 + 日游，跟「编辑行程」生成的格式一致。
+     填了城市就按城市生成；没填城市才沿用原文里认出来的标题。 */
+  var autoTitle = p.city ? (p.city + n + "日游") : (p.title || "");
+
+  var h = '<div class="form">' +
+    '<h2>识别结果</h2>' +
+    '<div class="hint">共 ' + n + ' 天 · ' + total + ' 个景点。' +
+      '标题会按「城市 + ' + n + '日游」自动生成，填了城市就会跟着变。确认无误再写入。</div>' +
+    '<label>城市<input id="p_city" autocomplete="off" placeholder="如 柳州" value="' + esc(p.city) + '"></label>' +
+    '<label>行程名称<input id="p_title" autocomplete="off" placeholder="如 柳州' + n + '日游" value="' + esc(autoTitle) + '"></label>' +
+    '<div class="pv">';
+  for(var a = 0; a < n; a++){
+    var d = p.days[a];
+    h += '<div class="pv-day"><div class="pv-h">' + esc(d.label) +
+           ' <span class="muted small">' + d.items.length + ' 个</span></div>';
+    for(var b = 0; b < d.items.length; b++){
+      h += '<div class="pv-i">' + esc(d.items[b].name) +
+             (d.items[b].time ? ' <span class="muted small">' + esc(d.items[b].time) + '</span>' : '') +
+           '</div>';
+    }
+    h += '</div>';
+  }
+  h += '</div>';
+
+  h += '<label>写入方式<select id="p_mode">' +
+         '<option value="new">新建一个行程</option>' +
+         (db.trips.length ? '<option value="append">追加到现有行程</option>' : '') +
+       '</select></label>';
+
+  if(db.trips.length){
+    h += '<label id="p_pick_wrap" hidden>选择要追加的行程<select id="p_pick">' +
+      db.trips.map(function(t){
+        return '<option value="' + t.id + '">' + esc(t.title) + '</option>';
+      }).join("") + '</select></label>';
+  }
+
+  h += '<div class="actions">' +
+         '<button class="btn primary" data-act="planApply">确认添加</button>' +
+         '<button class="btn ghost" data-act="planBack">返回修改</button>' +
+       '</div>' +
+       '<div class="actions2"><button class="btn tiny ghost" data-act="closeSheet">取消</button></div>' +
+     '</div>';
+
+  openSheet(h);
+
+  var sel = $("#p_mode");
+  if(sel){
+    sel.addEventListener("change", function(){
+      var w = $("#p_pick_wrap");
+      if(w) w.hidden = (sel.value !== "append");
+    });
+  }
+
+  /* 城市一改，标题自动跟着变成「城市 + N日游」；用户自己动过标题就不再插手 */
+  var cityEl = $("#p_city"), titleEl = $("#p_title");
+  var titleTouched = false;
+  if(titleEl){
+    titleEl.addEventListener("input", function(){ titleTouched = true; });
+  }
+  if(cityEl && titleEl){
+    cityEl.addEventListener("input", function(){
+      if(titleTouched) return;
+      var c = cityEl.value.trim();
+      titleEl.value = c ? (c + n + "日游") : (p.title || "");
+    });
+  }
+}
+
+/* 追加到现有行程：按 Day 数字对上号就往那天里加，对不上就新开一天 */
+function planAppendTo(t, p, city){
+  var added = 0;
+  t.days = t.days || [];
+  for(var i = 0; i < p.days.length; i++){
+    var pd = p.days[i];
+    var num = /^Day\s*(\d+)/.exec(pd.label || "");
+    var target = null;
+    if(num){
+      for(var k = 0; k < t.days.length; k++){
+        var m = /^Day\s*(\d+)/.exec(t.days[k].label || "");
+        if(m && m[1] === num[1]){ target = t.days[k]; break; }
+      }
+    }
+    if(!target){
+      target = { id: uid(), label: pd.label || ("Day " + (t.days.length + 1)), date: "", items: [] };
+      t.days.push(target);
+    }
+    target.items = target.items || [];
+    for(var j = 0; j < pd.items.length; j++){
+      var it = pd.items[j], dup = false;
+      for(var q = 0; q < target.items.length; q++){
+        if(target.items[q].name === it.name){ dup = true; break; }
+      }
+      if(dup) continue;
+      target.items.push({ id: uid(), name: it.name, date: "",
+                          time: it.time || "", note: it.note || "", done: false });
+      added++;
+    }
+  }
+  return added;
+}
+
+function planApply(){
+  var p = planPending;
+  if(!p){ toast("识别结果已失效，请重新识别"); return; }
+
+  var city = (($("#p_city") || {}).value || "").trim();
+  var mode = $("#p_mode") ? $("#p_mode").value : "new";
+
+  if(mode === "append" && db.trips.length){
+    var pick = $("#p_pick") ? $("#p_pick").value : "";
+    var t = db.trips.filter(function(x){ return x.id === pick; })[0];
+    if(!t){ toast("没找到那个行程"); return; }
+    var added = planAppendTo(t, p, city);
+    if(!added){ toast("这些景点都已经在里面了"); return; }
+    route.tripId = t.id; route.view = "trip"; route.dayFilter = null; db.activeTripId = t.id;
+    planPending = null;
+    save(); closeSheet(); render();
+    toast("已追加 " + added + " 个景点");
+    return;
+  }
+
+  /* 标题 = 城市 + 天数 + 日游；用户自己写了标题就听用户的 */
+  var title = (($("#p_title") || {}).value || "").trim();
+  if(!title) title = city ? (city + p.days.length + "日游") : "";
+  if(!title){ toast("请填写城市，或自己写一个行程名称"); return; }
+
+  var nt = { id: uid(), title: title, city: city, dayCount: p.days.length, days: [] };
+  for(var i = 0; i < p.days.length; i++){
+    var pd = p.days[i], nd = { id: uid(), label: pd.label, date: "", items: [] };
+    for(var j = 0; j < pd.items.length; j++){
+      var it = pd.items[j];
+      nd.items.push({ id: uid(), name: it.name, date: "",
+                      time: it.time || "", note: it.note || "", done: false });
+    }
+    nt.days.push(nd);
+  }
+  db.trips.push(nt);
+  route.tripId = nt.id; route.view = "trip"; route.dayFilter = null; db.activeTripId = nt.id;
+  planPending = null;
+  save(); closeSheet(); render();
+  toast("已添加 " + nt.days.length + " 天");
+}
+
+/* 返回修改：回到粘贴界面并保留原文 */
+function planBack(){
+  planSheet(planPending ? (planPending.raw || "") : "");
+}
+
+/* =====================================================================
+   左滑手势（鼠标左键拖动 / 触摸滑动都可用）
+   左滑露出「修改 / 删除」，替代原来的铅笔按钮
+   ===================================================================== */
+var swipeDrag = null;     // 正在拖动的手势
+var openSwipe = null;     // 当前展开的 .swipe
+var swipeEndAt = 0;       // 最近一次拖动结束时间（用于吞掉尾随 click）
+var swipeEndEl = null;    // 最近一次拖动的那一行（只吞这一行内的尾随 click）
+
+function swipeInner(sw){ return sw.querySelector(".swipe-inner"); }
+function swipeActionsW(sw){
+  var a = sw.querySelector(".swipe-actions");
+  return a ? a.offsetWidth : 0;
+}
+function applyX(sw, x){
+  var inner = swipeInner(sw);
+  if(inner) inner.style.transform = x ? "translateX(" + x + "px)" : "";
+}
+function closeSwipe(sw){
+  if(!sw) return;
+  sw.classList.remove("dragging");
+  sw.classList.remove("open");
+  applyX(sw, 0);
+  if(openSwipe === sw) openSwipe = null;
+}
+function closeAllSwipes(){
+  if(openSwipe) closeSwipe(openSwipe);
+  openSwipe = null;
+}
+
+document.addEventListener("pointerdown", function(e){
+  if(e.pointerType === "mouse" && e.button !== 0) return;   // 仅鼠标左键
+  var sw = e.target.closest ? e.target.closest(".swipe") : null;
+  if(sw && e.target.closest(".swipe-btn")) return;          // 点在按钮上不拖动
+
+  if(!sw){ closeAllSwipes(); return; }
+
+  swipeDrag = {
+    sw: sw,
+    id: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    base: (sw === openSwipe) ? -swipeActionsW(sw) : 0,
+    axis: null,
+    moved: false,
+    lastX: 0
+  };
+});
+
+document.addEventListener("pointermove", function(e){
+  var s = swipeDrag;
+  if(!s || e.pointerId !== s.id) return;
+  var dx = e.clientX - s.startX;
+  var dy = e.clientY - s.startY;
+
+  if(s.axis === null){
+    if(Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+    if(Math.abs(dx) > Math.abs(dy)){
+      s.axis = "x";
+      s.sw.classList.add("dragging");
+      try{ s.sw.setPointerCapture(e.pointerId); }catch(err){}
+    }else{
+      s.axis = "y";            // 判定为纵向滚动，放弃手势
+      return;
+    }
+  }
+  if(s.axis !== "x") return;
+
+  e.preventDefault();
+  s.moved = true;
+
+  var w = swipeActionsW(s.sw);
+  var x = s.base + dx;
+  if(x > 0) x = 0;                                   // 不允许右滑超出
+  if(x < -w) x = -w - (-w - x) * 0.3;                // 超出边界加阻尼
+  s.lastX = x;
+  applyX(s.sw, x);
+});
+
+function endSwipe(e){
+  var s = swipeDrag;
+  if(!s || e.pointerId !== s.id) return;
+  swipeDrag = null;
+  if(s.axis !== "x") return;
+
+  s.sw.classList.remove("dragging");
+  var w = swipeActionsW(s.sw);
+  var x = s.moved ? s.lastX : 0;
+  if(x < -w * 0.4){                                  // 滑过 40% 即展开
+    closeAllSwipes();
+    applyX(s.sw, -w);
+    s.sw.classList.add("open");                      // 让按钮可见
+    openSwipe = s.sw;
+  }else{
+    closeSwipe(s.sw);
+  }
+  if(s.moved){
+    swipeEndAt = Date.now();                         // 拖动结束后不触发点击
+    swipeEndEl = s.sw;                               // 且只拦截这一行内部的点击
+  }
+}
+document.addEventListener("pointerup", endSwipe);
+document.addEventListener("pointercancel", endSwipe);
+
+/* 禁止 .swipe 内部触发浏览器原生拖拽。
+   景点行里有链接和可选中的文字，按住拖动会触发 dragstart → pointercancel，
+   从而打断左滑手势（Day 标题没有链接所以没暴露这个问题）。 */
+document.addEventListener("dragstart", function(e){
+  if(e.target.closest && e.target.closest(".swipe")) e.preventDefault();
+}, true);
+
+/* 拖动后拦截紧随其后的 click（捕获阶段先于业务委托执行）
+   只吞掉「刚才拖动的那一行」内部产生的 click，避免误触景点链接 / 完成勾选；
+   页面别处的点击照常放行 */
+document.addEventListener("click", function(e){
+  var onBtn = !!(e.target.closest && e.target.closest(".swipe-btn"));
+  if(swipeEndAt && Date.now() - swipeEndAt <= 350){
+    swipeEndAt = 0;
+    var el = swipeEndEl;
+    swipeEndEl = null;
+    if(!onBtn && el && el.contains(e.target)){
+      e.stopPropagation();
+      e.preventDefault();
+      return;
+    }
+  }
+  if(openSwipe) closeAllSwipes();     // 只重置位移，元素仍在，委托照常执行
+}, true);
+
+/* =====================================================================
+   事件（统一委托）
+   ===================================================================== */
+document.addEventListener("click", function(e){
+  var el = e.target.closest ? e.target.closest("[data-act]") : null;
+  if(!el) return;
+  var act = el.getAttribute("data-act");
+  var id  = el.getAttribute("data-id");
+  var id2 = el.getAttribute("data-id2");
+  var t   = curTrip();
+
+  switch(act){
+
+    case "closeSheet": closeSheet(); break;
+
+    case "confirmYes": {
+      var fn = pendingConfirm;
+      pendingConfirm = null;
+      closeSheet();
+      if(fn) fn();
+      break;
+    }
+
+    /* --- 行程 --- */
+    case "planSheet":  planSheet(""); break;
+    case "planParse":  planParse(); break;
+    case "planApply":  planApply(); break;
+    case "planBack":   planBack(); break;
+
+    case "newTrip":  tripSheet(null); break;
+    case "editTrip": tripSheet(id); break;
+
+    case "openTrip":
+      route.tripId = id;
+      route.view = "trip";
+      route.dayFilter = null;          // 进新行程默认看全部
+      db.activeTripId = id;
+      save(); render();
+      break;
+
+    /* 只看某一天；data-id 为空 = TOTAL（全部） */
+    case "filterDay":
+      route.dayFilter = id || null;
+      render();
+      break;
+
+    case "delTrip":
+      confirmSheet("删除整个行程？此操作不可撤销。", function(){
+        db.trips = db.trips.filter(function(x){ return x.id !== id; });
+        route.view = "list"; route.tripId = null; route.dayFilter = null;
+        save(); render(); toast("已删除");
+      });
+      break;
+
+    /* --- 天 --- */
+    case "addDay": {
+      if(!t) break;
+      t.days = t.days || [];
+      t.days.push({ id: uid(), label: "Day " + (t.days.length + 1), date: "", items: [] });
+      save(); render();
+      break;
+    }
+
+    case "editDay": daySheet(id); break;
+
+    case "delDay": {
+      if(!t) break;
+      var dd = findDay(t, id);
+      var cnt = dd && dd.items ? dd.items.length : 0;
+      confirmSheet(cnt ? ("删除这一天？其中 " + cnt + " 个景点也会一起删除。") : "删除这一天？", function(){
+        t.days = t.days.filter(function(x){ return x.id !== id; });
+        save(); render(); toast("已删除");
+      });
+      break;
+    }
+
+    case "moveDayUp":
+    case "moveDayDown": {
+      if(!t) break;
+      var i = t.days.map(function(x){ return x.id; }).indexOf(id);
+      var j = act === "moveDayUp" ? i - 1 : i + 1;
+      if(i < 0 || j < 0 || j >= t.days.length){ toast("已经到头了"); break; }
+      var tmp = t.days[i]; t.days[i] = t.days[j]; t.days[j] = tmp;
+      save(); closeSheet(); render();
+      break;
+    }
+
+    /* --- 景点 --- */
+    /* 点景点名 → 复制到剪贴板，弹绿色提示条 */
+    case "copyName": {
+      var dc = findDay(t, id);
+      var ic = null;
+      if(dc){
+        var arr = dc.items || [];
+        for(var ci = 0; ci < arr.length; ci++){ if(arr[ci].id === id2){ ic = arr[ci]; break; } }
+      }
+      if(!ic){ toast("找不到这个景点"); break; }
+      copyName(ic.name);
+      break;
+    }
+
+    case "addItem":  itemSheet(id, null); break;
+    case "editItem": itemSheet(id, id2); break;
+
+    case "toggleItem": {
+      if(!t) break;
+      var d0 = findDay(t, id);
+      var it0 = d0 && (d0.items || []).filter(function(x){ return x.id === id2; })[0];
+      if(!it0) break;
+      it0.done = !it0.done;
+      save(); render();
+      break;
+    }
+
+    case "delItem": {
+      if(!t) break;
+      confirmSheet("删除这个景点？", function(){
+        var d1 = findDay(t, id);
+        if(d1) d1.items = (d1.items || []).filter(function(x){ return x.id !== id2; });
+        save(); render(); toast("已删除");
+      });
+      break;
+    }
+
+    case "moveItemUp":
+    case "moveItemDown": {
+      if(!t) break;
+      var d2 = findDay(t, id);
+      if(!d2) break;
+      var k  = (d2.items || []).map(function(x){ return x.id; }).indexOf(id2);
+      var m  = act === "moveItemUp" ? k - 1 : k + 1;
+      if(k < 0 || m < 0 || m >= d2.items.length){ toast("已经到头了"); break; }
+      var tmp2 = d2.items[k]; d2.items[k] = d2.items[m]; d2.items[m] = tmp2;
+      save(); closeSheet(); render();
+      break;
+    }
+
+    /* --- 备份 --- */
+    case "copyExport": {
+      var box = $("#expBox");
+      box.select();
+      var ok = false;
+      try{ ok = document.execCommand("copy"); }catch(err){ ok = false; }
+      if(!ok && navigator.clipboard){
+        navigator.clipboard.writeText(box.value).then(function(){ toast("已复制"); },
+                                                     function(){ toast("复制失败，请手动长按选择"); });
+        break;
+      }
+      toast(ok ? "已复制" : "复制失败，请手动长按选择");
+      break;
+    }
+
+    case "applyImport": {
+      var raw = $("#impBox").value.trim();
+      if(!raw){ toast("请先粘贴备份内容"); break; }
+      var parsed;
+      try{ parsed = JSON.parse(raw); }
+      catch(err){ toast("格式不对，请检查粘贴的内容"); break; }
+      if(!parsed || Object.prototype.toString.call(parsed.trips) !== "[object Array]"){
+        toast("这不是本工具导出的备份"); break;
+      }
+      confirmSheet("导入会覆盖当前全部数据，确定吗？", function(){
+        db = { version: 1, trips: parsed.trips, activeTripId: parsed.activeTripId || null };
+        route.view = "list"; route.tripId = null;
+        save(); render(); toast("导入成功");
+      });
+      break;
+    }
+  }
+});
+
+/* 点击遮罩关闭 */
+$("#sheetMask").addEventListener("click", closeSheet);
+
+/* 顶栏 */
+$("#backBtn").addEventListener("click", function(){
+  route.view = "list"; route.tripId = null; route.dayFilter = null; render();
+});
+$("#menuBtn").addEventListener("click", backupSheet);
+
+/* 提交按钮在表单内，回车不刷新页面 */
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape" && !$("#sheetWrap").hidden) closeSheet();
+});
+
+/* ---------------- 启动 ---------------- */
+db = load();
+if(db.activeTripId && db.trips.some(function(t){ return t.id === db.activeTripId; })){
+  route.tripId = db.activeTripId;
+}
+render();
+</script>
+</body>
+</html>
