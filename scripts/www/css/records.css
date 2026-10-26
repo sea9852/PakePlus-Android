@@ -1,0 +1,178 @@
+/* ===== 全部记录页 ===== */
+.page-records {
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(var(--safe-t) + 14px);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* --- 头部 --- */
+.rec-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 4px 20px 14px;
+}
+
+.rec-title {
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+.rec-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* --- 滚动区 --- */
+.rec-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 14px calc(46px + var(--safe-b));
+}
+
+.rec-scroll::-webkit-scrollbar {
+  width: 0;
+}
+
+/* --- 月份分组 --- */
+.rg {
+  margin-bottom: 6px;
+}
+
+.rg-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 6px 8px;
+}
+
+.rg-head b {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.rg-head span {
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.rg-body {
+  background: var(--card);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(20, 24, 31, 0.04), 0 6px 18px rgba(20, 24, 31, 0.04);
+}
+
+/* --- 日期行 --- */
+.rg-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  background: none;
+  border-bottom: 0.5px solid var(--line);
+  transition: background 0.14s;
+}
+
+.rg-row:last-child {
+  border-bottom: none;
+}
+
+.rg-row:active {
+  background: rgba(18, 183, 106, 0.07);
+}
+
+.rg-day {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 58px;
+}
+
+.rg-num {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.rg-wd {
+  font-size: 10.5px;
+  color: var(--text-3);
+}
+
+.rg-times {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.01em;
+}
+
+.rg-count {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  background: #F2F4F6;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+}
+
+/* 多次打卡用绿色胶囊突出，方便扫视 */
+.rg-count.hot {
+  background: var(--green-soft);
+  color: var(--green-dark);
+  font-weight: 500;
+}
+
+/* --- 全局空状态 --- */.rec-all-empty {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding-top: 72px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.rec-all-empty.show {
+  display: flex;
+}
+
+.rec-all-empty-hint {
+  font-size: 11.5px;
+  color: #C4C9D1;
+  margin-top: 2px;
+}
+
+@media (max-height: 700px) {
+  .rec-head {
+    padding-bottom: 10px;
+  }
+  .rec-title {
+    font-size: 24px;
+  }
+}
